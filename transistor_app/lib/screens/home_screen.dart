@@ -25,7 +25,7 @@ class HomeScreen extends ConsumerWidget {
       'Sesión cerrada',
     );
 
-    context.pushNamed(FormScreen.name);
+    context.goNamed(LoginScreen.name);
   }
 
   @override
@@ -38,7 +38,9 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transistores'),
+        title: Text(
+          user != null ? 'Hola, ${user.nombre}' : 'Transistores',
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -110,9 +112,9 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       onTap: () {
                         context.pushNamed(
-                          FormScreen.name,
-                           queryParameters: {
-                           'id': transistor.id,
+                          DetailScreen.name,
+                          pathParameters: {
+                            'id': transistor.id,
                           },
                         );
                       },

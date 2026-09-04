@@ -17,19 +17,17 @@ class FormScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FormScreen> createState() =>
-      _FormScreenState();
+  ConsumerState<FormScreen> createState() => _FormScreenState();
 }
 
-class _FormScreenState
-    extends ConsumerState<FormScreen> {
+class _FormScreenState extends ConsumerState<FormScreen> {
+  final formKey = GlobalKey<FormState>();
+
   final tituloController = TextEditingController();
-  final descripcionController =
-      TextEditingController();
+  final descripcionController = TextEditingController();
   final imagenController = TextEditingController();
   final tipoController = TextEditingController();
-  final aplicacionController =
-      TextEditingController();
+  final aplicacionController = TextEditingController();
 
   bool get isEditing => widget.id != null;
 
@@ -43,16 +41,11 @@ class _FormScreenState
           .getTransistor(widget.id!);
 
       if (transistor != null) {
-        tituloController.text =
-            transistor.titulo;
-        descripcionController.text =
-            transistor.descripcion;
-        imagenController.text =
-            transistor.imagen;
-        tipoController.text =
-            transistor.tipo;
-        aplicacionController.text =
-            transistor.aplicacion;
+        tituloController.text = transistor.titulo;
+        descripcionController.text = transistor.descripcion;
+        imagenController.text = transistor.imagen;
+        tipoController.text = transistor.tipo;
+        aplicacionController.text = transistor.aplicacion;
       }
     }
   }
@@ -68,30 +61,31 @@ class _FormScreenState
     super.dispose();
   }
 
-  void save() {
-    final titulo =
-        tituloController.text.trim();
-    final descripcion =
-        descripcionController.text.trim();
-    final imagen =
-        imagenController.text.trim();
-    final tipo =
-        tipoController.text.trim();
-    final aplicacion =
-        aplicacionController.text.trim();
+  String? campoObligatorio(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Este campo es obligatorio';
+    }
 
-    if (titulo.isEmpty ||
-        descripcion.isEmpty ||
-        imagen.isEmpty ||
-        tipo.isEmpty ||
-        aplicacion.isEmpty) {
+    return null;
+  }
+
+  void save() {
+    final esValido = formKey.currentState?.validate() ?? false;
+
+    if (!esValido) {
       AppSnackBar.error(
         context,
-        'Completá todos los campos',
+        'Completá todos los campos obligatorios',
       );
 
       return;
     }
+
+    final titulo = tituloController.text.trim();
+    final descripcion = descripcionController.text.trim();
+    final imagen = imagenController.text.trim();
+    final tipo = tipoController.text.trim();
+    final aplicacion = aplicacionController.text.trim();
 
     if (isEditing) {
       final transistor = Transistor(
@@ -103,9 +97,7 @@ class _FormScreenState
         aplicacion: aplicacion,
       );
 
-      ref
-          .read(transistorProvider.notifier)
-          .updateTransistor(transistor);
+      ref.read(transistorProvider.notifier).updateTransistor(transistor);
 
       AppSnackBar.success(
         context,
@@ -113,9 +105,7 @@ class _FormScreenState
       );
     } else {
       final transistor = Transistor(
-        id: DateTime.now()
-            .millisecondsSinceEpoch
-            .toString(),
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         titulo: titulo,
         descripcion: descripcion,
         imagen: imagen,
@@ -123,9 +113,7 @@ class _FormScreenState
         aplicacion: aplicacion,
       );
 
-      ref
-          .read(transistorProvider.notifier)
-          .addTransistor(transistor);
+      ref.read(transistorProvider.notifier).addTransistor(transistor);
 
       AppSnackBar.success(
         context,
@@ -141,88 +129,84 @@ class _FormScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEditing
-              ? 'Editar transistor'
-              : 'Nuevo transistor',
+          isEditing ? 'Editar transistor' : 'Nuevo transistor',
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              TextField(
-                controller: tituloController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: tipoController,
-                decoration: const InputDecoration(
-                  labelText: 'Tipo de transistor',
-                  border: OutlineInputBorder(),
-                  prefixIcon:
-                      Icon(Icons.category),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: aplicacionController,
-                decoration: const InputDecoration(
-                  labelText: 'Aplicación',
-                  border: OutlineInputBorder(),
-                  prefixIcon:
-                      Icon(Icons.settings),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: imagenController,
-                decoration: const InputDecoration(
-                  labelText:
-                      'Ruta de la imagen',
-                  hintText:
-                      'assets/images/mi_transistor.png',
-                  border: OutlineInputBorder(),
-                  prefixIcon:
-                      Icon(Icons.image),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller:
-                    descripcionController,
-                maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                  prefixIcon:
-                      Icon(Icons.description),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: save,
-                  icon: Icon(
-                    isEditing
-                        ? Icons.save
-                        : Icons.add,
-                  ),
-                  label: Text(
-                    isEditing
-                        ? 'Guardar cambios'
-                        : 'Agregar transistor',
+          child: Form(
+            key: formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: tituloController,
+                  validator: campoObligatorio,
+                  decoration: const InputDecoration(
+                    labelText: 'Título',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.title),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: tipoController,
+                  validator: campoObligatorio,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de transistor',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.category),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: aplicacionController,
+                  validator: campoObligatorio,
+                  decoration: const InputDecoration(
+                    labelText: 'Aplicación',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.settings),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: imagenController,
+                  validator: campoObligatorio,
+                  decoration: const InputDecoration(
+                    labelText: 'Ruta de la imagen',
+                    hintText: 'assets/images/mi_transistor.png',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.image),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: descripcionController,
+                  maxLines: 6,
+                  validator: campoObligatorio,
+                  decoration: const InputDecoration(
+                    labelText: 'Descripción',
+                    border: OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                    prefixIcon: Icon(Icons.description),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: save,
+                    icon: Icon(
+                      isEditing ? Icons.save : Icons.add,
+                    ),
+                    label: Text(
+                      isEditing ? 'Guardar cambios' : 'Agregar transistor',
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

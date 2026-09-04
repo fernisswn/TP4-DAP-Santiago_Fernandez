@@ -7,17 +7,23 @@ final authProvider = NotifierProvider<AuthNotifier, User?>(
 );
 
 class AuthNotifier extends Notifier<User?> {
-  final List<User> _users = const [
-    User(
-      username: 'admin',
+  final List<User> _usuarios = [
+    const User(
+      id: '1',
+      nombre: 'Administrador',
+      email: 'admin@demo.com',
       password: '1234',
     ),
-    User(
-      username: 'usuario',
+    const User(
+      id: '2',
+      nombre: 'Usuario de prueba',
+      email: 'usuario@demo.com',
       password: '1234',
     ),
-    User(
-      username: 'fernando',
+    const User(
+      id: '3',
+      nombre: 'Fernando',
+      email: 'fernando@demo.com',
       password: 'flutter',
     ),
   ];
@@ -27,23 +33,54 @@ class AuthNotifier extends Notifier<User?> {
     return null;
   }
 
+  /// Intenta iniciar sesión con [email] y [password].
+  /// Devuelve `true` si las credenciales son correctas.
   bool login({
-    required String username,
+    required String email,
     required String password,
   }) {
-    final user = _users.where(
-      (user) =>
-          user.username.toLowerCase() == username.toLowerCase() &&
-          user.password == password,
+    final coincidencias = _usuarios.where(
+      (usuario) =>
+          usuario.email.toLowerCase() == email.toLowerCase() &&
+          usuario.password == password,
     );
 
-    if (user.isEmpty) {
+    if (coincidencias.isEmpty) {
       return false;
     }
 
-    state = user.first;
+    state = coincidencias.first;
 
     return true;
+  }
+
+  /// Registra un nuevo usuario y lo deja logueado.
+  /// Devuelve un mensaje de error, o `null` si el registro fue exitoso.
+  String? register({
+    required String nombre,
+    required String email,
+    required String password,
+  }) {
+    final emailYaRegistrado = _usuarios.any(
+      (usuario) => usuario.email.toLowerCase() == email.toLowerCase(),
+    );
+
+    if (emailYaRegistrado) {
+      return 'Ya existe una cuenta registrada con ese email';
+    }
+
+    final nuevoUsuario = User(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      nombre: nombre,
+      email: email,
+      password: password,
+    );
+
+    _usuarios.add(nuevoUsuario);
+
+    state = nuevoUsuario;
+
+    return null;
   }
 
   void logout() {

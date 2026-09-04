@@ -4,6 +4,7 @@ import '../screens/detail_screen.dart';
 import '../screens/form_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/register_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -13,6 +14,13 @@ final appRouter = GoRouter(
       path: '/',
       builder: (context, state) {
         return const LoginScreen();
+      },
+    ),
+    GoRoute(
+      name: RegisterScreen.name,
+      path: '/register',
+      builder: (context, state) {
+        return const RegisterScreen();
       },
     ),
     GoRoute(
